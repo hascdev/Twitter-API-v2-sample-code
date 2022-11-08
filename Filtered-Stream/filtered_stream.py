@@ -1,6 +1,7 @@
 import requests
 import os
 import json
+import time
 
 # To set your enviornment variables in your terminal run the following line:
 # export 'BEARER_TOKEN'='<your_bearer_token>'
@@ -69,20 +70,29 @@ def set_rules(delete):
 
 
 def get_stream(set):
-    response = requests.get(
-        "https://api.twitter.com/2/tweets/search/stream", auth=bearer_oauth, stream=True,
-    )
-    print(response.status_code)
-    if response.status_code != 200:
-        raise Exception(
-            "Cannot get stream (HTTP {}): {}".format(
-                response.status_code, response.text
-            )
+    try:
+        response = requests.get(
+            "https://api.twitter.com/2/tweets/search/stream", auth=bearer_oauth, stream=True,
         )
-    for response_line in response.iter_lines():
-        if response_line:
-            json_response = json.loads(response_line)
-            print(json.dumps(json_response, indent=4, sort_keys=True))
+        print(response.status_code)
+        if response.status_code != 200:
+            raise Exception(
+                "Cannot get stream (HTTP {}): {}".format(
+                    response.status_code, response.text
+                )
+            )
+        for response_line in response.iter_lines():
+            if response_line:
+                json_response = json.loads(response_line)
+                print(json.dumps(json_response, indent=4, sort_keys=True))
+                
+    except Exception as e:
+        print(e)
+        time.sleep(30)
+        # Reconnecting...
+        print("Reconnecting...")
+        get_stream()
+        
 
 
 def main():
